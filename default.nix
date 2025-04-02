@@ -14,7 +14,7 @@ let
     # You can get this hash by running:
     # nix-build -A gateway-operator.vendorSha256
     # Or by trying to build the package and copying the expected hash from the error message.
-    vendorHash = "sha256-na+vukcDQJ6AtCfIjaY4Ep98E39nTYTvNdzmBtduS80="; # Placeholder, user needs to fetch this
+    vendorHash = "sha256-RjUZml56Th3yBx2zYEM2maK1eK+8ckC2nNy9TLmTXEQ="; # Placeholder, user needs to fetch this
 
     # Module path from go.mod: github.com/kong/gateway-operator
     # buildGoModule automatically uses the path relative to modRoot
