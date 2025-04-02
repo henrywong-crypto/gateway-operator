@@ -528,22 +528,12 @@ func TestSetDataPlaneIngressServicePorts(t *testing.T) {
 					Protocol: gwtypes.HTTPProtocolType,
 					Port:     gatewayv1.PortNumber(80),
 				},
-				{
-					Name:     "https",
-					Protocol: gatewayv1.HTTPSProtocolType,
-					Port:     gatewayv1.PortNumber(443),
-				},
 			},
 			expectedPorts: []operatorv1beta1.DataPlaneServicePort{
 				{
 					Name:       "http",
 					Port:       80,
 					TargetPort: intstr.FromInt(consts.DataPlaneProxyPort),
-				},
-				{
-					Name:       "https",
-					Port:       443,
-					TargetPort: intstr.FromInt(consts.DataPlaneProxySSLPort),
 				},
 			},
 		},

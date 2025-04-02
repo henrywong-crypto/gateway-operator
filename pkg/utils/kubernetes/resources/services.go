@@ -82,12 +82,6 @@ var DefaultDataPlaneIngressServicePorts = []corev1.ServicePort{
 		Port:       consts.DefaultHTTPPort,
 		TargetPort: intstr.FromInt(consts.DataPlaneProxyPort),
 	},
-	{
-		Name:       "https",
-		Protocol:   corev1.ProtocolTCP,
-		Port:       consts.DefaultHTTPSPort,
-		TargetPort: intstr.FromInt(consts.DataPlaneProxySSLPort),
-	},
 }
 
 func getDataPlaneIngressServiceType(dataplane *operatorv1beta1.DataPlane) corev1.ServiceType {

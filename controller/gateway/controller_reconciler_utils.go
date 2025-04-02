@@ -307,7 +307,6 @@ func generateDataPlaneNetworkPolicy(
 		protocolTCP     = corev1.ProtocolTCP
 		adminAPISSLPort = intstr.FromInt(consts.DataPlaneAdminAPIPort)
 		proxyPort       = intstr.FromInt(consts.DataPlaneProxyPort)
-		proxySSLPort    = intstr.FromInt(consts.DataPlaneProxySSLPort)
 		metricsPort     = intstr.FromInt(consts.DataPlaneMetricsPort)
 	)
 
@@ -327,9 +326,6 @@ func generateDataPlaneNetworkPolicy(
 		}
 		if kongListenConfig.Endpoint != nil {
 			proxyPort = intstr.FromInt(kongListenConfig.Endpoint.Port)
-		}
-		if kongListenConfig.SSLEndpoint != nil {
-			proxySSLPort = intstr.FromInt(kongListenConfig.SSLEndpoint.Port)
 		}
 	}
 	if adminListen := k8sutils.EnvValueByName(container.Env, "KONG_ADMIN_LISTEN"); adminListen != "" {
@@ -364,7 +360,6 @@ func generateDataPlaneNetworkPolicy(
 	allowProxyIngress := networkingv1.NetworkPolicyIngressRule{
 		Ports: []networkingv1.NetworkPolicyPort{
 			{Protocol: &protocolTCP, Port: &proxyPort},
-			{Protocol: &protocolTCP, Port: &proxySSLPort},
 		},
 	}
 
@@ -850,8 +845,6 @@ func setDataPlaneIngressServicePorts(opts *operatorv1beta1.DataPlaneOptions, lis
 			Port: int32(l.Port),
 		}
 		switch l.Protocol {
-		case gatewayv1.HTTPSProtocolType:
-			port.TargetPort = intstr.FromInt(consts.DataPlaneProxySSLPort)
 		case gatewayv1.HTTPProtocolType:
 			port.TargetPort = intstr.FromInt(consts.DataPlaneProxyPort)
 		default:

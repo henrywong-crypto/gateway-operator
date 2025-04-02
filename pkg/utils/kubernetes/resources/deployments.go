@@ -352,11 +352,6 @@ func GenerateDataPlaneContainer(image string) corev1.Container {
 				Protocol:      corev1.ProtocolTCP,
 			},
 			{
-				Name:          "proxy-ssl",
-				ContainerPort: consts.DataPlaneProxySSLPort,
-				Protocol:      corev1.ProtocolTCP,
-			},
-			{
 				Name:          "metrics",
 				ContainerPort: consts.DataPlaneMetricsPort,
 				Protocol:      corev1.ProtocolTCP,

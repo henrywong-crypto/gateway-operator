@@ -146,8 +146,6 @@ const (
 	// DataPlaneProxyPort is the port that the dataplane uses for HTTP.
 	DataPlaneProxyPort = 8000
 
-	// DataPlaneProxySSLPort is the port that the dataplane uses for HTTPS.
-	DataPlaneProxySSLPort = 8443
 
 	// DataPlaneMetricsPort is the port that the dataplane uses for metrics.
 	DataPlaneMetricsPort = 8100
