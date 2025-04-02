@@ -62,11 +62,6 @@ in
       # Ensure pathsToLink creates necessary directories like /bin
       pathsToLink = [ "/bin" ];
     };
-
-    # Inherit metadata from the Go build and add specific description
-    meta = gateway-operator.meta // {
-      description = "Docker image for ${gateway-operator.pname}";
-    };
   };
 }
 # This part is now moved inside the 'let' block above and wrapped in the final attribute set.
