@@ -33,12 +33,7 @@ let
     };
   };
 in
-{
-  # Expose the Go build derivation
-  inherit gateway-operator;
-
-  # Define the Docker image build using the Go application
-  dockerImage = pkgs.dockerTools.buildImage {
+  pkgs.dockerTools.buildImage {
     name = "kong-gateway-operator"; # Image name
     tag = "latest";   # Image tag
 
@@ -62,6 +57,5 @@ in
       # Ensure pathsToLink creates necessary directories like /bin
       pathsToLink = [ "/bin" ];
     };
-  };
-}
+  }
 # This part is now moved inside the 'let' block above and wrapped in the final attribute set.
