@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - test # Or change to 'main' if that's your default branch
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      packages: write
+      # The following permissions are needed for provenance attestation
+      # attestations: write
+      # id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v25
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable # Or your preferred Nixpkgs channel
+
+      - name: Build Docker image with Nix
+        run: nix-build --no-link -A dockerImage # Assuming your image derivation is named 'dockerImage' in default.nix
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Load, Tag and Push Docker image
+        run: |
+          docker load < result # nix-build output symlink
+          # Assuming the image name in your Nix expression is 'gateway' and tag is 'latest'
+          IMAGE_NAME="kong-gateway-operator"
+          IMAGE_TAG="latest"
+          # Construct the full GHCR image path
+          GHCR_IMAGE="ghcr.io/${{ github.repository }}/${IMAGE_NAME}:${IMAGE_TAG}"
+          # Tag the loaded image
+          docker tag "${IMAGE_NAME}:${IMAGE_TAG}" "${GHCR_IMAGE}"
+          # Push the image
+          docker push "${GHCR_IMAGE}"
+
+      # Optional: Add steps for Docker Scout/provenance if needed
+      # - name: Docker Scout
+      #   uses: docker/scout-action@v1
+      #   with:
+      #     command: cves,recommendations
+      #     image: ghcr.io/${{ github.repository }}/gateway:latest

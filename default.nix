@@ -1,41 +1,72 @@
+# Allow overriding nixpkgs source, default to <nixpkgs> channel
+{ pkgs ? import <nixpkgs> {} }:
+
 let
-  # Pin nixpkgs to a specific revision for reproducibility
-  nixpkgs = builtins.fetchTarball {
-    # Example: Fetch the nixos-24.05 stable branch
-    url = "https://github.com/NixOS/nixpkgs/archive/refs/heads/nixpkgs-unstable.tar.gz";
+  # Define the Go application build
+  gateway-operator = pkgs.buildGoModule rec {
+    pname = "gateway-operator";
+    version = "1.5.1"; # From VERSION file
+
+    # Use the local source directory
+    src = ./.;
+
+    # vendorHash is calculated from go.sum and go.mod
     # You can get this hash by running:
-    # nix-prefetch-url --unpack <url>
-    # Or by trying to build and copying the expected hash from the error message.
-    sha256 = "sha256:1bimkzs7q9yqfvw9h4wgs3v2izvc7ya8qyy2v850ac5r548l022z"; # Placeholder, user needs to fetch this
+    # nix-build -A gateway-operator.vendorSha256
+    # Or by trying to build the package and copying the expected hash from the error message.
+    vendorHash = "sha256-na+vukcDQJ6AtCfIjaY4Ep98E39nTYTvNdzmBtduS80="; # Placeholder, user needs to fetch this
+
+    # Module path from go.mod: github.com/kong/gateway-operator
+    # buildGoModule automatically uses the path relative to modRoot
+    modRoot = ".";
+    subPackages = [ "cmd" ]; # Build the main package in cmd/
+
+    # Standard flags to strip debug info and symbols for smaller binary size
+    ldflags = [ "-s" "-w" ];
+
+    meta = with pkgs.lib; {
+      description = "Kubernetes operator for managing Kong Gateway deployments";
+      homepage = "https://github.com/kong/gateway-operator";
+      license = licenses.asl20; # Apache License 2.0 from LICENSE file
+      maintainers = with maintainers; [ ]; # User can add maintainers if desired
+      mainProgram = "gateway-operator"; # Assuming the binary name matches pname
+    };
   };
-  pkgs = import nixpkgs {};
 in
-pkgs.buildGoModule rec {
-  pname = "gateway-operator";
-  version = "1.5.1"; # From VERSION file
+{
+  # Expose the Go build derivation
+  inherit gateway-operator;
 
-  # Use the local source directory
-  src = ./.;
+  # Define the Docker image build using the Go application
+  dockerImage = pkgs.dockerTools.buildImage {
+    name = "gateway"; # Image name
+    tag = "latest";   # Image tag
 
-  # vendorHash is calculated from go.sum and go.mod
-  # You can get this hash by running:
-  # nix-build -A gateway-operator.vendorSha256
-  # Or by trying to build the package and copying the expected hash from the error message.
-  vendorHash = "sha256-na+vukcDQJ6AtCfIjaY4Ep98E39nTYTvNdzmBtduS80="; # Placeholder, user needs to fetch this
+    # Use the compiled Go binary as the entrypoint
+    config = {
+      # The binary is located in the 'bin' directory of the Go build output
+      Entrypoint = [ "${gateway-operator}/bin/${gateway-operator.pname}" ];
+      # You might need to add Cmd = [ "--some-flag" ]; if your app needs arguments
+    };
 
-  # Module path from go.mod: github.com/kong/gateway-operator
-  # buildGoModule automatically uses the path relative to modRoot
-  modRoot = ".";
-  subPackages = [ "cmd" ]; # Build the main package in cmd/
+    # Copy necessary files into the image root filesystem
+    copyToRoot = pkgs.buildEnv {
+      name = "image-root";
+      paths = [
+        gateway-operator # Includes the binary in /bin
+        pkgs.dockerTools.caCertificates # Standard CA certificates for TLS/HTTPS
+        # Add other necessary files or directories here, e.g.:
+        # ./config # If you need configuration files
+        # ./migrations # If you have database migrations
+      ];
+      # Ensure pathsToLink creates necessary directories like /bin
+      pathsToLink = [ "/bin" ];
+    };
 
-  # Standard flags to strip debug info and symbols for smaller binary size
-  ldflags = [ "-s" "-w" ];
-
-  meta = with pkgs.lib; {
-    description = "Kubernetes operator for managing Kong Gateway deployments";
-    homepage = "https://github.com/kong/gateway-operator";
-    license = licenses.asl20; # Apache License 2.0 from LICENSE file
-    maintainers = with maintainers; [ ]; # User can add maintainers if desired
-    mainProgram = "gateway-operator"; # Assuming the binary name matches pname
+    # Inherit metadata from the Go build and add specific description
+    meta = gateway-operator.meta // {
+      description = "Docker image for ${gateway-operator.pname}";
+    };
   };
 }
+# This part is now moved inside the 'let' block above and wrapped in the final attribute set.
