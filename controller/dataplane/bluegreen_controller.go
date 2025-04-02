@@ -14,7 +14,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -176,26 +175,8 @@ func (r *BlueGreenReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, nil
 	}
 
-	log.Trace(logger, "ensuring mTLS certificate")
-	res, certSecret, err := ensureDataPlaneCertificate(ctx, r.Client, &dataplane,
-		types.NamespacedName{
-			Namespace: r.ClusterCASecretNamespace,
-			Name:      r.ClusterCASecretName,
-		},
-		types.NamespacedName{
-			Namespace: dataplaneAdminService.Namespace,
-			Name:      dataplaneAdminService.Name,
-		},
-		r.ClusterCAKeyConfig,
-	)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	if res != op.Noop {
-		log.Debug(logger, "mTLS certificate created/updated")
-		return ctrl.Result{}, nil // requeue will be triggered by the creation or update of the owned object
-	}
-
+	// mTLS certificate generation removed.
+	// The certSecret variable is no longer needed.
 	// Ensure "preview" Ingress service.
 	res, previewIngressService, err := r.ensurePreviewIngressService(ctx, logger, &dataplane)
 	if err != nil {
@@ -213,7 +194,7 @@ func (r *BlueGreenReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	// Ensure "preview" Deployment.
-	deployment, res, err := r.ensureDeploymentForDataPlane(ctx, logger, &dataplane, certSecret)
+	deployment, res, err := r.ensureDeploymentForDataPlane(ctx, logger, &dataplane)
 	if err != nil {
 		cErr := r.ensureRolledOutCondition(ctx, logger, &dataplane, metav1.ConditionFalse, kcfgdataplane.DataPlaneConditionReasonRolloutFailed, "failed to ensure preview Deployment")
 		return ctrl.Result{}, fmt.Errorf("failed to ensure Deployment for DataPlane: %w", errors.Join(cErr, err))
@@ -498,7 +479,7 @@ func (r *BlueGreenReconciler) ensureDeploymentForDataPlane(
 	ctx context.Context,
 	logger logr.Logger,
 	dataplane *operatorv1beta1.DataPlane,
-	certSecret *corev1.Secret,
+	// certSecret *corev1.Secret, // Removed as mTLS is disabled.
 ) (*appsv1.Deployment, op.Result, error) {
 	deploymentOpts := []k8sresources.DeploymentOpt{
 		labelSelectorFromDataPlaneRolloutStatusSelectorDeploymentOpt(dataplane),
@@ -530,7 +511,7 @@ func (r *BlueGreenReconciler) ensureDeploymentForDataPlane(
 	deploymentBuilder := NewDeploymentBuilder(logger.WithName("deployment_builder"), r.Client).
 		WithBeforeCallbacks(r.Callbacks.BeforeDeployment).
 		WithAfterCallbacks(r.Callbacks.AfterDeployment).
-		WithClusterCertificate(certSecret.Name).
+		// WithClusterCertificate removed as mTLS is disabled.
 		WithOpts(deploymentOpts...).
 		WithDefaultImage(r.DefaultImage).
 		WithAdditionalLabels(deploymentLabels)

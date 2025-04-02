@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -145,26 +144,8 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		return ctrl.Result{}, nil // dataplane status update will trigger reconciliation
 	}
 
-	log.Trace(logger, "ensuring mTLS certificate")
-	res, certSecret, err := ensureDataPlaneCertificate(ctx, r.Client, dataplane,
-		types.NamespacedName{
-			Namespace: r.ClusterCASecretNamespace,
-			Name:      r.ClusterCASecretName,
-		},
-		types.NamespacedName{
-			Namespace: dataplaneAdminService.Namespace,
-			Name:      dataplaneAdminService.Name,
-		},
-		r.ClusterCAKeyConfig,
-	)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	if res != op.Noop {
-		log.Debug(logger, "mTLS certificate created/updated")
-		return ctrl.Result{}, nil // requeue will be triggered by the creation or update of the owned object
-	}
-
+	// mTLS certificate generation removed.
+	// The certSecret variable is no longer needed.
 	log.Trace(logger, "checking readiness of DataPlane service", "service", dataplaneIngressService.Name)
 	if dataplaneIngressService.Spec.ClusterIP == "" {
 		return ctrl.Result{}, nil // no need to requeue, the update will trigger.
@@ -203,7 +184,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	deploymentBuilder := NewDeploymentBuilder(logger.WithName("deployment_builder"), r.Client).
 		WithBeforeCallbacks(r.Callbacks.BeforeDeployment).
 		WithAfterCallbacks(r.Callbacks.AfterDeployment).
-		WithClusterCertificate(certSecret.Name).
+		// WithClusterCertificate removed as mTLS is disabled.
 		WithOpts(deploymentOpts...).
 		WithDefaultImage(r.DefaultImage).
 		WithAdditionalLabels(deploymentLabels)

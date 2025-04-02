@@ -158,28 +158,7 @@ func SetDefaults(
 	// and once from the ControlPlane controller. the Gateway controller only has the spec and lacks meta, whereas the
 	// ControlPlane controller doesn't have the args.ManagedByGateway
 
-	const controllerKongAdminTLSClientCertFileEnvVarName = "CONTROLLER_KONG_ADMIN_TLS_CLIENT_CERT_FILE"
-	if _, isOverrideDisabled := dontOverride[controllerKongAdminTLSClientCertFileEnvVarName]; !isOverrideDisabled {
-		if k8sutils.EnvValueByName(container.Env, controllerKongAdminTLSClientCertFileEnvVarName) != consts.TLSCRTPath {
-			container.Env = k8sutils.UpdateEnv(container.Env, controllerKongAdminTLSClientCertFileEnvVarName, consts.TLSCRTPath)
-			changed = true
-		}
-	}
-	const controllerKongAdminTLSClientKeyFileEnvVarName = "CONTROLLER_KONG_ADMIN_TLS_CLIENT_KEY_FILE"
-	if _, isOverrideDisabled := dontOverride[controllerKongAdminTLSClientKeyFileEnvVarName]; !isOverrideDisabled {
-		if k8sutils.EnvValueByName(container.Env, controllerKongAdminTLSClientKeyFileEnvVarName) != consts.TLSKeyPath {
-			container.Env = k8sutils.UpdateEnv(container.Env, controllerKongAdminTLSClientKeyFileEnvVarName, consts.TLSKeyPath)
-			changed = true
-		}
-	}
-	const controllerKongAdminCACertFileEnvVarName = "CONTROLLER_KONG_ADMIN_CA_CERT_FILE"
-	if _, isOverrideDisabled := dontOverride[controllerKongAdminCACertFileEnvVarName]; !isOverrideDisabled {
-		if k8sutils.EnvValueByName(container.Env, controllerKongAdminCACertFileEnvVarName) != consts.TLSCACRTPath {
-			container.Env = k8sutils.UpdateEnv(container.Env, controllerKongAdminCACertFileEnvVarName, consts.TLSCACRTPath)
-			changed = true
-		}
-	}
-
+	// Admin API mTLS client certificate environment variables removed.
 	if args.ControlPlaneName != "" {
 		const controllerElectionIDEnvVarName = "CONTROLLER_ELECTION_ID"
 		electionID := fmt.Sprintf("%s.konghq.com", args.ControlPlaneName)

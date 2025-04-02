@@ -20,7 +20,10 @@ var KongDefaults = map[string]string{
 	"KONG_ADMIN_GUI_ACCESS_LOG":   "/dev/stdout",
 	"KONG_ADMIN_GUI_ERROR_LOG":    "/dev/stderr",
 	"KONG_CLUSTER_LISTEN":         "off",
-	"KONG_DATABASE":               "off",
+	// KONG_DATABASE is intentionally omitted here.
+	// The operator primarily supports DB-less mode. While users can set KONG_DATABASE
+	// via environment variables in the DataPlane spec, the operator does not
+	// provide specific support or management for DB-backed deployments.
 	"KONG_NGINX_WORKER_PROCESSES": "2",
 	kongPluginsEnvVarName:         kongPluginsDefaultValue,
 	"KONG_PORTAL_API_ACCESS_LOG":  "/dev/stdout",
@@ -31,14 +34,10 @@ var KongDefaults = map[string]string{
 	"KONG_PROXY_LISTEN":           fmt.Sprintf("0.0.0.0:%d reuseport backlog=16384, 0.0.0.0:%d http2 ssl reuseport backlog=16384", consts.DataPlaneProxyPort, consts.DataPlaneProxySSLPort),
 	"KONG_STATUS_LISTEN":          fmt.Sprintf("0.0.0.0:%d", consts.DataPlaneStatusPort),
 
-	"KONG_ADMIN_LISTEN": fmt.Sprintf("0.0.0.0:%d ssl reuseport backlog=16384", consts.DataPlaneAdminAPIPort),
+	"KONG_ADMIN_LISTEN": fmt.Sprintf("0.0.0.0:%d reuseport backlog=16384", consts.DataPlaneAdminAPIPort), // Removed ssl
 
 	// MTLS
-	"KONG_ADMIN_SSL_CERT":                     "/var/cluster-certificate/tls.crt",
-	"KONG_ADMIN_SSL_CERT_KEY":                 "/var/cluster-certificate/tls.key",
-	"KONG_NGINX_ADMIN_SSL_CLIENT_CERTIFICATE": "/var/cluster-certificate/ca.crt",
-	"KONG_NGINX_ADMIN_SSL_VERIFY_CLIENT":      "on",
-	"KONG_NGINX_ADMIN_SSL_VERIFY_DEPTH":       "3",
+	// mTLS related env vars removed.
 }
 
 // kongInKonnectClusterTypeControlPlane are the baseline Kong proxy configuration options needed for

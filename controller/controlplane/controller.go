@@ -386,20 +386,12 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		return ctrl.Result{Requeue: true}, nil
 	}
 
-	log.Trace(logger, "creating mTLS certificate")
-	res, adminCertificate, err := r.ensureAdminMTLSCertificateSecret(ctx, cp)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	if res != op.Noop {
-		log.Debug(logger, "mTLS certificate created/updated")
-		return ctrl.Result{}, nil // requeue will be triggered by the creation or update of the owned object
-	}
-
+	// Admin API mTLS certificate generation removed.
+	// The adminCertificate variable is no longer needed.
 	deploymentParams := ensureDeploymentParams{
 		ControlPlane:            cp,
 		ServiceAccountName:      controlplaneServiceAccount.Name,
-		AdminMTLSCertSecretName: adminCertificate.Name,
+		// AdminMTLSCertSecretName removed as mTLS is disabled.
 		EnforceConfig:           r.EnforceConfig,
 		WatchNamespaces:         validatedWatchNamespaces,
 	}

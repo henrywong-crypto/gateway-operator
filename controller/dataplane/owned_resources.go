@@ -9,17 +9,14 @@ import (
 	"github.com/google/go-cmp/cmp"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
-	certificatesv1 "k8s.io/api/certificates/v1"
 	corev1 "k8s.io/api/core/v1"
 	policyv1 "k8s.io/api/policy/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kong/gateway-operator/controller/pkg/dataplane"
 	"github.com/kong/gateway-operator/controller/pkg/op"
 	"github.com/kong/gateway-operator/controller/pkg/patch"
-	"github.com/kong/gateway-operator/controller/pkg/secrets"
 	"github.com/kong/gateway-operator/pkg/consts"
 	k8sutils "github.com/kong/gateway-operator/pkg/utils/kubernetes"
 	k8sreduce "github.com/kong/gateway-operator/pkg/utils/kubernetes/reduce"
@@ -28,31 +25,7 @@ import (
 	operatorv1beta1 "github.com/kong/kubernetes-configuration/api/gateway-operator/v1beta1"
 )
 
-// ensureDataPlaneCertificate ensures that a certificate exists for the given dataplane.
-// Said certificate is used to secure the Admin API.
-func ensureDataPlaneCertificate(
-	ctx context.Context,
-	cl client.Client,
-	dataplane *operatorv1beta1.DataPlane,
-	clusterCASecretNN types.NamespacedName,
-	adminServiceNN types.NamespacedName,
-	keyConfig secrets.KeyConfig,
-) (op.Result, *corev1.Secret, error) {
-	usages := []certificatesv1.KeyUsage{
-		certificatesv1.UsageKeyEncipherment,
-		certificatesv1.UsageDigitalSignature, certificatesv1.UsageServerAuth,
-	}
-	return secrets.EnsureCertificate(ctx,
-		dataplane,
-		fmt.Sprintf("*.%s.%s.svc", adminServiceNN.Name, adminServiceNN.Namespace),
-		clusterCASecretNN,
-		usages,
-		keyConfig,
-		cl,
-		secrets.GetManagedLabelForServiceSecret(adminServiceNN),
-	)
-}
-
+// ensureDataPlaneCertificate removed as mTLS is disabled.
 func ensureHPAForDataPlane(
 	ctx context.Context,
 	cl client.Client,

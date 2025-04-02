@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"path/filepath"
 	"reflect"
 
 	"github.com/go-logr/logr"
@@ -29,7 +28,7 @@ import (
 
 // DeploymentBuilder builds a Deployment for a DataPlane.
 type DeploymentBuilder struct {
-	clusterCertificateName string
+	// clusterCertificateName string // Removed as mTLS is disabled.
 	beforeCallbacks        CallbackManager
 	afterCallbacks         CallbackManager
 	logger                 logr.Logger
@@ -59,12 +58,7 @@ func (d *DeploymentBuilder) WithAfterCallbacks(c CallbackManager) *DeploymentBui
 	return d
 }
 
-// WithClusterCertificate configures a cluster certificate name for a DeploymentBuilder.
-func (d *DeploymentBuilder) WithClusterCertificate(name string) *DeploymentBuilder {
-	d.clusterCertificateName = name
-	return d
-}
-
+// WithClusterCertificate removed as mTLS is disabled.
 // WithAdditionalLabels configures additional labels for a DeploymentBuilder.
 func (d *DeploymentBuilder) WithAdditionalLabels(labels client.MatchingLabels) *DeploymentBuilder {
 	d.additionalLabels = labels
@@ -118,7 +112,7 @@ func (d *DeploymentBuilder) BuildAndDeploy(
 	}
 
 	// Add the cluster certificate to the generated Deployment
-	desiredDeployment = setClusterCertVars(desiredDeployment, d.clusterCertificateName)
+	// Cluster certificate configuration removed as mTLS is disabled.
 
 	// run any callbacks that patch the initial Deployment struct
 	afterDeploymentCallbacks := NewCallbackRunner(d.client)
@@ -211,27 +205,7 @@ func applyEnvForDataPlane(
 	return deployment
 }
 
-// setClusterCertVars configures a cluster certificate in the proxy environment.
-func setClusterCertVars(
-	deployment *k8sresources.Deployment,
-	secretName string,
-) *k8sresources.Deployment {
-	return deployment.WithVolume(k8sresources.ClusterCertificateVolume(secretName)).
-		WithVolumeMount(k8sresources.ClusterCertificateVolumeMount(), consts.DataPlaneProxyContainerName).
-		WithEnvVar(
-			corev1.EnvVar{
-				Name:  "KONG_CLUSTER_CERT",
-				Value: filepath.Join(consts.ClusterCertificateVolumeMountPath, "tls.crt"),
-			}, consts.DataPlaneProxyContainerName,
-		).
-		WithEnvVar(
-			corev1.EnvVar{
-				Name:  "KONG_CLUSTER_CERT_KEY",
-				Value: filepath.Join(consts.ClusterCertificateVolumeMountPath, "tls.key"),
-			}, consts.DataPlaneProxyContainerName,
-		)
-}
-
+// setClusterCertVars removed as mTLS is disabled.
 // listOrReduceDataPlaneDeployments lists existing DataPlane Deployments. If only one is present, it returns it. If
 // multiple are present, it reduces them to one and notifies the caller it reduced, so that the caller can try its
 // operation again once there's only a single Deployment to work with.

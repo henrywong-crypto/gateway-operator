@@ -470,40 +470,7 @@ func (r *Reconciler) ensureClusterRoleBinding(
 	return true, generated, r.Create(ctx, generated)
 }
 
-// ensureAdminMTLSCertificateSecret ensures that a Secret is created with the certificate for mTLS communication between the
-// ControlPlane and the DataPlane.
-func (r *Reconciler) ensureAdminMTLSCertificateSecret(
-	ctx context.Context,
-	cp *operatorv1beta1.ControlPlane,
-) (
-	op.Result,
-	*corev1.Secret,
-	error,
-) {
-	usages := []certificatesv1.KeyUsage{
-		certificatesv1.UsageKeyEncipherment,
-		certificatesv1.UsageDigitalSignature,
-		certificatesv1.UsageClientAuth,
-	}
-	matchingLabels := client.MatchingLabels{
-		consts.SecretUsedByServiceLabel: consts.ControlPlaneServiceKindAdmin,
-	}
-	// this subject is arbitrary. data planes only care that client certificates are signed by the trusted CA, and will
-	// accept a certificate with any subject
-	return secrets.EnsureCertificate(ctx,
-		cp,
-		fmt.Sprintf("%s.%s", cp.Name, cp.Namespace),
-		k8stypes.NamespacedName{
-			Namespace: r.ClusterCASecretNamespace,
-			Name:      r.ClusterCASecretName,
-		},
-		usages,
-		r.ClusterCAKeyConfig,
-		r.Client,
-		matchingLabels,
-	)
-}
-
+// ensureAdminMTLSCertificateSecret removed as mTLS is disabled.
 // ensureAdmissionWebhookCertificateSecret ensures that a Secret is created with the serving certificate for the
 // ControlPlane's admission webhook.
 func (r *Reconciler) ensureAdmissionWebhookCertificateSecret(
