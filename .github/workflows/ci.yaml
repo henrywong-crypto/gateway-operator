@@ -23,9 +23,6 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable # Or your preferred Nixpkgs channel
 
-      - name: Build Docker image with Nix
-        run: nix-build --no-link -A dockerImage # Assuming your image derivation is named 'dockerImage' in default.nix
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -35,6 +32,7 @@ jobs:
 
       - name: Load, Tag and Push Docker image
         run: |
+          nix-build --no-link -A dockerImage # Build the Docker image
           docker load < result # nix-build output symlink
           # Assuming the image name in your Nix expression is 'gateway' and tag is 'latest'
           IMAGE_NAME="kong-gateway-operator"
