@@ -34,7 +34,6 @@ jobs:
         run: |
           nix-build --no-link -A dockerImage # Build the Docker image
           docker load < result # nix-build output symlink
-          # Assuming the image name in your Nix expression is 'gateway' and tag is 'latest'
           IMAGE_NAME="kong-gateway-operator"
           IMAGE_TAG="latest"
           # Construct the full GHCR image path

@@ -39,7 +39,7 @@ in
 
   # Define the Docker image build using the Go application
   dockerImage = pkgs.dockerTools.buildImage {
-    name = "gateway-operator"; # Image name
+    name = "kong-gateway-operator"; # Image name
     tag = "latest";   # Image tag
 
     # Use the compiled Go binary as the entrypoint
