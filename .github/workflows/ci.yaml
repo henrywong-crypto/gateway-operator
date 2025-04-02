@@ -32,7 +32,7 @@ jobs:
 
       - name: Load, Tag and Push Docker image
         run: |
-          nix-build --no-link -A dockerImage # Build the Docker image
+          nix-build
           docker load < result # nix-build output symlink
           IMAGE_NAME="kong-gateway-operator"
           IMAGE_TAG="latest"
